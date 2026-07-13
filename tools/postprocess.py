@@ -17,8 +17,13 @@ import wave
 RAW, DST = sys.argv[1], sys.argv[2]
 ORIG = sys.argv[3] if len(sys.argv) > 3 else None
 RATE = 16000
-SIL = 300            # silence threshold (16-bit RMS) for trim
+SIL = 120            # silence threshold (16-bit RMS): low, so a soft onset
+                     # consonant (g/f/s, quiet on low male voices) is NOT
+                     # mistaken for silence and trimmed away
 KEEP_MS = 60         # keep a little air around the speech
+MAX_LEAD_MS = 90     # HARD cap on leading trim: Kokoro's lead-in is short,
+                     # so never remove more than this from the front - it
+                     # physically cannot eat the first syllable
 FIXED_TARGET = 4000  # 16-bit speech RMS when no reference pack is given
 
 
@@ -52,9 +57,10 @@ for p in sorted(glob.glob(os.path.join(RAW, "*.wav"))):
     # trim silence
     n = len(d) // 2
     step = RATE // 100                       # 10 ms windows
+    lead_cap = int(RATE * MAX_LEAD_MS / 1000)
     lo, hi = 0, n
-    while lo < n and rms(d[lo * 2:(lo + step) * 2]) < SIL:
-        lo += step
+    while lo < lead_cap and rms(d[lo * 2:(lo + step) * 2]) < SIL:
+        lo += step                           # capped: never past MAX_LEAD_MS
     while hi > lo and rms(d[(hi - step) * 2:hi * 2]) < SIL:
         hi -= step
     pad = int(RATE * KEEP_MS / 1000)
