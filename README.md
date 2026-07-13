@@ -1,6 +1,6 @@
 # rc-voices
 
-Generate RC transmitter voice packs (EdgeTX / OpenTX) with
+Generate RC transmitter voice packs (EdgeTX) with
 [Kokoro-82M](https://github.com/hexgrad/kokoro) - a small, fast,
 Apache-2.0 neural TTS. Driven by plain text lists; one consistent voice
 over the whole pack, dropped into the `SOUNDS/<lang>` layout the radio
@@ -54,9 +54,9 @@ The script installs a CUDA torch wheel (cu124) for the GPU.
 
 - [x] Kokoro engine, all voices selectable, af_nicole default
 - [x] multi-voice render (scripts/render_all_voices.sh - the pack ships in every voice, user picks)
-- [ ] full EdgeTX + project text collection with exact filenames
-- [ ] gap check (flaps up/down, gear, trims, timers, ...)
-- [ ] full batch + postprocess
-- [ ] on-radio test
+- [x] full EdgeTX text set (747) + INAV/Betaflight/Yaapu, exact filenames
+- [x] gap check: EdgeTX already covers flaps/gear/spoiler/timers; verified 0 diff to upstream
+- [x] full batch: 766 phrases x 18 voices, radio-correct filenames
+- [ ] on-radio test (install: docs/INSTALL.md)
 
 Generated audio stays out of git - this repo carries tooling and lists.

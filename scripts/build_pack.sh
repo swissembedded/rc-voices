@@ -20,4 +20,8 @@ for v in $FEMALE; do one "$v" "$v"; done
 one "af_bella:0.6,af_nicole:0.4" blend_bn
 one "af_bella:0.5,af_sky:0.5"    blend_bs
 for v in $MALE;   do one "$v" "$v"; done
+# make the funny startup the active welcome (EdgeTX plays SYSTEM/hello.wav
+# on power-on); the other start*/stop* lines stay as alternatives
+for d in out/*/; do cp "$d/SOUNDS/en/start1.wav" "$d/SOUNDS/en/SYSTEM/hello.wav"; done
+
 echo "PACK DONE -> out/<voice>/SOUNDS/en ($(find out -name '*.wav' | wc -l) files, $(ls out | wc -l) voices)"
