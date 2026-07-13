@@ -11,6 +11,8 @@ system sounds, function callouts, and flight-controller telemetry.
 - Apache-2.0, English, offline. No cloud, no API key, nobody's voice
   cloned.
 
+Hear a sample (default voice, the startup greeting): [`samples/af_nicole-start1-startup.wav`](samples/af_nicole-start1-startup.wav)
+
 ## Quick start
 
 1. Grab the ZIP for a voice from [Releases](../../releases) (start with
