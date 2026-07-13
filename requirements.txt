@@ -1,0 +1,4 @@
+# Kokoro-82M (Apache-2.0). Tiny, fast, GPU-friendly. The only engine.
+kokoro
+soundfile
+numpy

@@ -1,0 +1,6 @@
+venv/
+work/
+out/
+synth.json
+__pycache__/
+*.pyc

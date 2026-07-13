@@ -1,0 +1,6 @@
+rc-voice
+Copyright 2026 swissembedded
+
+This product generates RC transmitter voice packs with Kokoro-82M
+(https://github.com/hexgrad/kokoro, Apache-2.0). Flight-mode text lists
+are derived from EdgeTX/OpenTX and INAV (see lists/ for provenance).
