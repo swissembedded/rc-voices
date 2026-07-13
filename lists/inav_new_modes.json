@@ -1,0 +1,16 @@
+{
+  "_comment": "NEW INAV callouts from the quaternion orientation-hold branch, not yet in EdgeTX. EdgeTX-style short filenames in the INAV folder. Stock INAV modes are already in edgetx_full.json (INAV/acromd.wav etc.) - do not duplicate.",
+  "modes": {
+    "INAV/invrtd.wav": "inverted flight",
+    "INAV/knifel.wav": "knife edge left",
+    "INAV/knifer.wav": "knife edge right",
+    "INAV/prpang.wav": "prop hang",
+    "INAV/fltspn.wav": "flat spin",
+    "INAV/3dlock.wav": "three D lock",
+    "INAV/altflr.wav": "altitude floor",
+    "INAV/figrol.wav": "figure roll",
+    "INAV/figlop.wav": "figure loop",
+    "INAV/fig4pt.wav": "four point roll",
+    "INAV/figseq.wav": "figure sequence"
+  }
+}

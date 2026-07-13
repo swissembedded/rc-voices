@@ -1,12 +1,12 @@
-"""Convert raw synthesis output into radio-ready pack files.
+"""Convert raw Kokoro output into radio-ready pack files.
 
-- resample 24 kHz XTTS output -> 16 kHz mono 16-bit PCM (the pack's format)
+- resample 24 kHz Kokoro output -> 16 kHz mono 16-bit PCM (pack format)
 - trim leading/trailing silence (radio announcements must fire instantly)
-- loudness-match against the reference pack's median RMS
-- restore the SOUNDS/en/<PATH>/ layout from the __-flattened names
+- loudness-normalise to a target RMS (a reference pack, or a fixed value)
+- restore the SOUNDS/<lang>/<PATH>/ layout from the __-flattened names
 
 Usage:
-  python tools/postprocess.py work/raw out/SOUNDS/en C:/tmp/pack_ref/SOUNDS/en
+  python tools/postprocess.py work/raw out/SOUNDS/en [reference/SOUNDS/en]
 """
 import audioop
 import glob
@@ -14,10 +14,12 @@ import os
 import sys
 import wave
 
-RAW, DST, ORIG = sys.argv[1], sys.argv[2], sys.argv[3]
+RAW, DST = sys.argv[1], sys.argv[2]
+ORIG = sys.argv[3] if len(sys.argv) > 3 else None
 RATE = 16000
 SIL = 300            # silence threshold (16-bit RMS) for trim
 KEEP_MS = 60         # keep a little air around the speech
+FIXED_TARGET = 4000  # 16-bit speech RMS when no reference pack is given
 
 
 def read(p):
@@ -35,10 +37,13 @@ def rms(d):
     return audioop.rms(d, 2) if d else 0
 
 
-# target loudness = median RMS of the original pack
-orig_rms = sorted(rms(read(p)[0]) for p in glob.glob(f"{ORIG}/*.wav")[:200])
-target = orig_rms[len(orig_rms) // 2]
-print(f"target RMS {target} (original pack median)")
+if ORIG:
+    orig_rms = sorted(rms(read(p)[0]) for p in glob.glob(f"{ORIG}/*.wav")[:200])
+    target = orig_rms[len(orig_rms) // 2] if orig_rms else FIXED_TARGET
+    print(f"target RMS {target} (reference pack median)")
+else:
+    target = FIXED_TARGET
+    print(f"target RMS {target} (fixed)")
 
 for p in sorted(glob.glob(os.path.join(RAW, "*.wav"))):
     d, r = read(p)
