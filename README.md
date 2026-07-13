@@ -53,6 +53,7 @@ The script installs a CUDA torch wheel (cu124) for the GPU.
 ## Status
 
 - [x] Kokoro engine, all voices selectable, af_nicole default
+- [x] multi-voice render (scripts/render_all_voices.sh - the pack ships in every voice, user picks)
 - [ ] full EdgeTX + project text collection with exact filenames
 - [ ] gap check (flaps up/down, gear, trims, timers, ...)
 - [ ] full batch + postprocess
