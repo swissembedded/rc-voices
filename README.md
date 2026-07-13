@@ -1,62 +1,104 @@
 # rc-voices
 
-Generate RC transmitter voice packs (EdgeTX) with
-[Kokoro-82M](https://github.com/hexgrad/kokoro) - a small, fast,
-Apache-2.0 neural TTS. Driven by plain text lists; one consistent voice
-over the whole pack, dropped into the `SOUNDS/<lang>` layout the radio
-expects.
+Neural **voice packs for EdgeTX** radios, generated locally and free with
+[Kokoro-82M](https://github.com/hexgrad/kokoro). One consistent voice
+speaks the whole pack, in the exact `SOUNDS/en` filenames EdgeTX plays -
+system sounds, function callouts, and flight-controller telemetry.
 
-## Voice
+- 766 announcements per pack: the complete EdgeTX English set + INAV,
+  Betaflight and Yaapu telemetry callouts.
+- 18 voices to choose from (female, male, blends).
+- Apache-2.0, English, offline. No cloud, no API key, nobody's voice
+  cloned.
 
-Default is `af_nicole` (warm, low, steady - F0 ~ 161 Hz, matches
-`lists/voice_target.md`). Any Kokoro voice works via `--voice`, single
-or a weighted blend (`"af_bella:0.6,af_nicole:0.4"`), plus `--speed`.
-US female: af_heart af_bella af_nicole af_sarah af_sky af_kore af_aoede
-af_alloy. US male: am_adam am_michael am_echo am_eric am_liam am_onyx
-am_fenrir am_puck. Kokoro ships the voices with the model and is
-Apache-2.0, so the output is clean to redistribute - a generic voice, no
-one is cloned.
+## Quick start
 
-## Text lists
+1. Grab the ZIP for a voice from [Releases](../../releases) (start with
+   `af_nicole`).
+2. Extract `SOUNDS/` to the root of your radio's SD card, so you have
+   `SOUNDS/en/…`.
+3. On the radio: **Radio Setup -> Voice -> Language: en**.
 
-Each entry is `filename -> spoken text`. The filenames must match exactly
-what the transmitter looks for, or it stays silent.
+Full install notes (startup greeting, shutdown line, assigning the new
+INAV modes) are in [docs/INSTALL.md](docs/INSTALL.md).
 
-- `lists/missing_en.json` - announcements the current EdgeTX phrase list
-  expects (per SOUNDS/<lang> path).
-- `lists/inav_modes.json` - INAV flight-mode callouts, including the
-  modes from our quaternion orientation-hold branch.
+## Voices
 
-`tools/build_list.py` merges them into `lists/synth.json`.
+All at a slightly deliberate pace (speed 0.9). Lower pitch = warmer.
+**af_nicole** is the recommended default.
 
-## Setup
+| Female | ~F0 | Male | ~F0 |
+| --- | --- | --- | --- |
+| af_alloy | 156 Hz | am_onyx | 96 Hz |
+| **af_nicole** | 161 Hz | am_echo | 117 Hz |
+| af_sky | 180 Hz | am_liam | 125 Hz |
+| af_kore | 185 Hz | am_adam | 126 Hz |
+| af_aoede | 194 Hz | am_michael | 129 Hz |
+| af_bella | 204 Hz | am_puck | 133 Hz |
+| af_sarah | 205 Hz | am_fenrir | 153 Hz |
+| af_heart | 217 Hz | am_eric | 188 Hz |
 
-Python 3.10-3.12, NVIDIA GPU recommended (Kokoro is fast on an 8 GB card,
-usable on CPU). One-time:
+Plus two blends: `blend_bn` (bella + nicole) and `blend_bs` (bella + sky).
+
+## What's in a pack
+
+- **EdgeTX system + functions** - numbers, units, and every callout
+  (gear up/down, flaps, spoiler, snapflap, timers, ...). Verified
+  identical to the current EdgeTX en-US definition.
+- **Flight controllers** - INAV, Betaflight and Yaapu telemetry callouts.
+- **New INAV aerobatic modes** - inverted flight, knife edge L/R, prop
+  hang, flat spin, 3D lock, altitude floor, figure roll/loop/4-point/
+  sequence (from the quaternion orientation-hold work).
+- **A cheeky startup greeting** - `SYSTEM/hello.wav` says "try not to
+  break your little toy today"; alternate start/stop lines are included.
+
+## Build it yourself
+
+Everything is reproducible. Python 3.10-3.12, an NVIDIA GPU recommended
+(fast on an 8 GB card, works on CPU).
 
 ```
-scripts/setup.sh    # venv + kokoro + a 1-phrase smoke test
+scripts/setup.sh                 # venv + Kokoro (installs CUDA torch)
+venv/Scripts/python tools/build_list.py    # -> lists/synth.json (766)
+scripts/build_pack.sh            # all 18 voices -> out/<voice>/SOUNDS/en
+venv/Scripts/python tools/package.py       # -> release/*.zip + SHA256SUMS
 ```
 
-The script installs a CUDA torch wheel (cu124) for the GPU.
+Pick or tune a single voice directly:
 
-## Pipeline
+```
+venv/Scripts/python tools/synthesize.py lists/synth.json work/raw \
+  --voice af_nicole --speed 0.9
+venv/Scripts/python tools/postprocess.py work/raw out/af_nicole/SOUNDS/en
+```
 
-1. `tools/build_list.py` - merge the text lists into `lists/synth.json`.
-2. `tools/synthesize.py lists/synth.json work/raw [--voice af_nicole] [--speed 1.0]`
-   - one wav per phrase, 24 kHz.
-3. `tools/postprocess.py work/raw out/SOUNDS/en <reference-pack>/SOUNDS/en`
-   - resample to 16 kHz mono 16-bit, trim silence, loudness-match, write
-   the exact `SOUNDS/<lang>` filenames the radio plays.
-4. Listen-check, copy to the SD card.
+`--voice` also takes a weighted blend, e.g. `"af_bella:0.6,af_nicole:0.4"`.
 
-## Status
+## Scope & limits
 
-- [x] Kokoro engine, all voices selectable, af_nicole default
-- [x] multi-voice render (scripts/render_all_voices.sh - the pack ships in every voice, user picks)
-- [x] full EdgeTX text set (747) + INAV/Betaflight/Yaapu, exact filenames
-- [x] gap check: EdgeTX already covers flaps/gear/spoiler/timers; verified 0 diff to upstream
-- [x] full batch: 766 phrases x 18 voices, radio-correct filenames
-- [ ] on-radio test (install: docs/INSTALL.md)
+- **EdgeTX, English only.** OpenTX shares EdgeTX's sound system, so it is
+  covered by the same pack.
+- Kokoro has **no German** model (nor Korean/Polish/Czech/Danish), so
+  those languages are not possible with this engine. Spanish, French,
+  Italian, Portuguese and Japanese would be feasible from the matching
+  EdgeTX text lists.
 
-Generated audio stays out of git - this repo carries tooling and lists.
+## Text sources & filenames
+
+The text lists live in `lists/`:
+- `edgetx_full.json` - the complete EdgeTX en set, exact `Path/Filename`,
+  parsed from the upstream CSVs (also kept in `lists/`).
+- `inav_new_modes.json` - the new INAV aerobatic callouts.
+- `messages.json` - the humorous start/stop lines.
+
+The filenames matter: the radio only plays a sound if the file is named
+and placed exactly as the firmware expects. These lists carry the
+authoritative names, so the pack drops straight in.
+
+## License & credits
+
+Apache-2.0 (see `LICENSE`, `NOTICE`). Voice model:
+[Kokoro-82M](https://github.com/hexgrad/kokoro) (Apache-2.0). Sound
+definitions and filenames from
+[EdgeTX](https://github.com/EdgeTX/edgetx-sdcard-sounds). We synthesize a
+generic voice - no real person is cloned; see [NOTES.md](NOTES.md).
