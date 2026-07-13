@@ -1,4 +1,4 @@
-# rc-voice
+# rc-voices
 
 Generate RC transmitter voice packs (EdgeTX / OpenTX) with
 [Kokoro-82M](https://github.com/hexgrad/kokoro) - a small, fast,
