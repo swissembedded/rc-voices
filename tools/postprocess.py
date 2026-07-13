@@ -18,12 +18,13 @@ RAW, DST = sys.argv[1], sys.argv[2]
 ORIG = sys.argv[3] if len(sys.argv) > 3 else None
 RATE = 16000
 SIL = 120            # silence threshold (16-bit RMS): low, so a soft onset
-                     # consonant (g/f/s, quiet on low male voices) is NOT
-                     # mistaken for silence and trimmed away
-KEEP_MS = 60         # keep a little air around the speech
-MAX_LEAD_MS = 90     # HARD cap on leading trim: Kokoro's lead-in is short,
-                     # so never remove more than this from the front - it
-                     # physically cannot eat the first syllable
+                     # or a quiet word-final decay is NOT read as silence
+MAX_LEAD_MS = 90     # cap on how much may be trimmed from the FRONT ...
+MAX_TAIL_MS = 150    # ... and from the END, so neither can eat a syllable
+BACK_MS = 30         # back off the detected onset/offset a hair so the
+                     # attack and the release stay fully inside
+LEAD_MS = 40         # fixed clean pause prepended to every clip
+TAIL_MS = 90         # fixed clean pause appended to every clip
 FIXED_TARGET = 4000  # 16-bit speech RMS when no reference pack is given
 
 
@@ -54,18 +55,23 @@ for p in sorted(glob.glob(os.path.join(RAW, "*.wav"))):
     d, r = read(p)
     if r != RATE:
         d, _ = audioop.ratecv(d, 2, 1, r, RATE, None)
-    # trim silence
+    # find the speech bounds, but cap how far each edge may move so a soft
+    # onset or a quiet word-final decay can never be trimmed off
     n = len(d) // 2
     step = RATE // 100                       # 10 ms windows
     lead_cap = int(RATE * MAX_LEAD_MS / 1000)
+    tail_cap = int(RATE * MAX_TAIL_MS / 1000)
     lo, hi = 0, n
     while lo < lead_cap and rms(d[lo * 2:(lo + step) * 2]) < SIL:
-        lo += step                           # capped: never past MAX_LEAD_MS
-    while hi > lo and rms(d[(hi - step) * 2:hi * 2]) < SIL:
+        lo += step
+    while (n - hi) < tail_cap and hi > lo and rms(d[(hi - step) * 2:hi * 2]) < SIL:
         hi -= step
-    pad = int(RATE * KEEP_MS / 1000)
-    lo, hi = max(0, lo - pad), min(n, hi + pad)
-    d = d[lo * 2:hi * 2]
+    back = int(RATE * BACK_MS / 1000)
+    lo, hi = max(0, lo - back), min(n, hi + back)
+    core = d[lo * 2:hi * 2]
+    # normalise both ends to a fixed clean pause, then this is the clip
+    d = (b"\x00\x00" * int(RATE * LEAD_MS / 1000)) + core + \
+        (b"\x00\x00" * int(RATE * TAIL_MS / 1000))
     # loudness match
     cur = rms(d)
     if cur:
