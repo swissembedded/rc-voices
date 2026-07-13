@@ -4,3 +4,4 @@ out/
 synth.json
 __pycache__/
 *.pyc
+release/
