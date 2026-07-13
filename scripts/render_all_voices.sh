@@ -23,6 +23,6 @@ gen() {  # voice-spec  folder  speed
 for v in $FEMALE; do gen "$v" "$v" 0.9; done
 gen "af_bella:0.6,af_nicole:0.4" "blend_bn" 0.9
 gen "af_bella:0.5,af_sky:0.5"    "blend_bs" 0.9
-for v in $MALE;   do gen "$v" "$v" 1.0; done
+for v in $MALE;   do gen "$v" "$v" 0.9; done
 
 echo "ALL VOICES DONE -> $OUT/<voice>/ ($(find "$OUT" -name '*.wav' | wc -l) files)"
